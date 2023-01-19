@@ -43,12 +43,16 @@ def rotate_clockwise(block):
     ]
 
 
-def delete_row(board, row):
-    del board[row]
-    return [[0 for _ in range(cols)]] + board
+def destroy_filed_lines(board):
+    new_board = board.copy()
+    for line in board:
+        if line.count('0') == 0:
+            del new_board[new_board.index(line)]
+            new_board.insert(0, ['0'] * 10)
+    return new_board
 
 
-def quit():
+def quit_game():
     sys.exit()
 
 
@@ -75,8 +79,8 @@ class Tetris:
         self.block_x = int(cols / 2 - len(self.block[0]) / 2)
         self.block_y = 0
 
-        # if check_collision():
-        #     self.game_over = True
+        if self.check_collision():
+            self.game_over = True
 
     def move_block(self, movement):
         if not self.game_over:
@@ -86,8 +90,13 @@ class Tetris:
             if new_x > cols - len(self.block[0]):
                 new_x = cols - len(self.block[0])
 
-            # if not check_collision():
-            #     self.stone_x = new_x
+            if not self.check_collision():
+                self.block_x = new_x
+
+    def rotate(self):
+        rotated_block = rotate_clockwise(self.block)
+        if not self.check_collision():
+            self.block = rotated_block
 
     def new_game(self):
         if self.game_over:
@@ -97,3 +106,14 @@ class Tetris:
             self.score = 0
             self.lines = 0
             self.game_over = False
+
+    def drop(self):
+        self.block_y += 1
+        if self.check_collision():
+            self.new_block()
+            self.board = destroy_filed_lines(self.board)
+            return True
+        return False
+
+    def check_collision(self):
+        pass
