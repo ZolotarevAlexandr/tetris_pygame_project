@@ -56,12 +56,19 @@ def rotate_clockwise(block):
 
 
 def destroy_filed_lines(board):
+    cleared_lines = 0
+    bonus = [0, 100, 300, 600, 1200]
     new_board = board.copy()
     for line in board:
         if line.count(0) == 0:
             del new_board[new_board.index(line)]
             new_board.insert(0, [0] * cols)
-    return new_board
+            cleared_lines += 1
+    if cleared_lines > len(bonus):
+        bonus_points = bonus[-1]
+    else:
+        bonus_points = bonus[cleared_lines]
+    return new_board, bonus_points
 
 
 def join_block(board, block_list, coords):
@@ -103,8 +110,10 @@ class Tetris:
         self.score = 0
         self.lines = 0
         self.game_over = False
+        self.paused = False
 
-        pygame.time.set_timer(drop_event, 200)
+        pygame.time.set_timer(drop_event, 1000 // self.level)
+        pygame.key.set_repeat(250, 25)
 
     def new_block(self):
         self.block = self.next_block[:]
@@ -117,6 +126,7 @@ class Tetris:
             print('Game Over!')
 
     def move_block(self, movement):
+        if not (self.game_over or self.paused):
             new_x = self.block_x + movement
             if new_x < 0:
                 new_x = 0
@@ -127,27 +137,26 @@ class Tetris:
                 self.block_x = new_x
 
     def rotate(self):
-        rotated_block = rotate_clockwise(self.block)
-        if not check_collision(self.board, self.block, (self.block_x, self.block_y)):
-            self.block = rotated_block
-
-    def new_game(self):
-        if self.game_over:
-            self.board = create_board()
-            self.new_block()
-            self.level = 1
-            self.score = 0
-            self.lines = 0
-            self.game_over = False
+        if not (self.game_over or self.paused):
+            rotated_block = rotate_clockwise(self.block)
+            if not check_collision(self.board, rotated_block, (self.block_x, self.block_y)):
+                self.block = rotated_block
 
     def drop(self):
+        if not (self.game_over or self.paused):
             self.block_y += 1
             if check_collision(self.board, self.block, (self.block_x, self.block_y)):
                 self.board = join_block(self.board, self.block, (self.block_x, self.block_y))
                 self.new_block()
-                self.board = destroy_filed_lines(self.board)
-                return True
-            return False
+                self.board, bonus = destroy_filed_lines(self.board)
+                self.add_score(bonus)
+            self.add_score(1)
+
+    def add_score(self, score_to_add):
+        self.score += score_to_add
+        self.level = (self.score // 1000) + 1
+        pygame.time.set_timer(drop_event, 1000 // self.level)
+        print(self.score, self.level)
 
     def render(self, board, coords):
         block_x, block_y = coords
@@ -159,6 +168,19 @@ class Tetris:
                         colors[val],
                         pygame.Rect((block_x + x) * cell_size, (block_y + y) * cell_size,
                                     cell_size, cell_size), 0)
+
+    def new_game(self):
+        if self.game_over:
+            self.board = create_board()
+            self.new_block()
+            self.level = 1
+            self.score = 0
+            self.lines = 0
+            self.game_over = False
+
+    def set_pause(self):
+        self.paused = not self.paused
+        print(f'Pause state: {self.paused}')
 
     def run(self):
         clock = pygame.time.Clock()
@@ -186,8 +208,12 @@ class Tetris:
                         self.move_block(-1)
                     if event.key == pygame.K_RIGHT:
                         self.move_block(+1)
+                    if event.key == pygame.K_DOWN:
+                        self.drop()
                     if event.key == pygame.K_ESCAPE:
                         quit_game()
+                    if event.key == pygame.K_SPACE:
+                        self.set_pause()
             clock.tick(FPS)
 
 
