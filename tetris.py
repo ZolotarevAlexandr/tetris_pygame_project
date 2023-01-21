@@ -26,13 +26,13 @@ blocks = [
 
 colors = (
     (0, 0, 0),
+    (255, 200, 46),  # orange
     (0, 119, 211), # blue
     (72, 93, 197), # dark blue
-    (120, 37, 111), # purple
-    (234, 20, 28), # red
+    (83, 218, 63),  # green
     (254, 251, 52), # yellow
-    (83, 218, 63), # green
-    (255, 200, 46) # orange
+    (234, 20, 28),  # red
+    (120, 37, 111)  # purple
 )
 
 cell_size = 18
@@ -201,19 +201,22 @@ class Tetris:
                     quit_game()
                 elif event.type == drop_event and not self.game_over:
                     self.drop()
-                elif event.type == pygame.KEYDOWN and not self.game_over:
-                    if event.key == pygame.K_UP:
-                        self.rotate()
-                    if event.key == pygame.K_LEFT:
-                        self.move_block(-1)
-                    if event.key == pygame.K_RIGHT:
-                        self.move_block(+1)
-                    if event.key == pygame.K_DOWN:
-                        self.drop()
-                    if event.key == pygame.K_ESCAPE:
-                        quit_game()
-                    if event.key == pygame.K_SPACE:
-                        self.set_pause()
+                elif event.type == pygame.KEYDOWN:
+                    if not self.game_over:
+                        if event.key == pygame.K_UP:
+                            self.rotate()
+                        if event.key == pygame.K_LEFT:
+                            self.move_block(-1)
+                        if event.key == pygame.K_RIGHT:
+                            self.move_block(+1)
+                        if event.key == pygame.K_DOWN:
+                            self.drop()
+                        if event.key == pygame.K_ESCAPE:
+                            quit_game()
+                        if event.key == pygame.K_SPACE:
+                            self.set_pause()
+                    if event.key == pygame.K_r:
+                        self.new_game()
             clock.tick(FPS)
 
 
