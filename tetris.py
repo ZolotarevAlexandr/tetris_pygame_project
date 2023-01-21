@@ -114,9 +114,9 @@ class Tetris:
 
         if check_collision(self.board, self.block, (self.block_x, self.block_y)):
             self.game_over = True
+            print('Game Over!')
 
     def move_block(self, movement):
-        if not self.game_over:
             new_x = self.block_x + movement
             if new_x < 0:
                 new_x = 0
@@ -141,13 +141,13 @@ class Tetris:
             self.game_over = False
 
     def drop(self):
-        self.block_y += 1
-        if check_collision(self.board, self.block, (self.block_x, self.block_y)):
-            self.board = join_block(self.board, self.block, (self.block_x, self.block_y))
-            self.new_block()
-            self.board = destroy_filed_lines(self.board)
-            return True
-        return False
+            self.block_y += 1
+            if check_collision(self.board, self.block, (self.block_x, self.block_y)):
+                self.board = join_block(self.board, self.block, (self.block_x, self.block_y))
+                self.new_block()
+                self.board = destroy_filed_lines(self.board)
+                return True
+            return False
 
     def render(self, board, coords):
         block_x, block_y = coords
@@ -177,16 +177,17 @@ class Tetris:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT or event.type == pygame.K_ESCAPE:
                     quit_game()
-                elif event.type == drop_event:
+                elif event.type == drop_event and not self.game_over:
                     self.drop()
-                elif event.type == pygame.KEYDOWN:
+                elif event.type == pygame.KEYDOWN and not self.game_over:
                     if event.key == pygame.K_UP:
                         self.rotate()
                     if event.key == pygame.K_LEFT:
                         self.move_block(-1)
                     if event.key == pygame.K_RIGHT:
                         self.move_block(+1)
-
+                    if event.key == pygame.K_ESCAPE:
+                        quit_game()
             clock.tick(FPS)
 
 
