@@ -1,5 +1,8 @@
 import pygame
 import sys
+import os
+import sqlite3
+from datetime import datetime
 from random import choice
 
 blocks = [
@@ -91,8 +94,49 @@ def check_collision(board, shape, coords):
     return False
 
 
+def set_new_best(new_best):
+    with open('data/best.txt', 'w') as best_res_file:
+        best_res_file.write(str(new_best))
+
+
 def quit_game():
     sys.exit()
+
+
+def create_db():
+    con = sqlite3.connect('C:\ProgramData/results.db')
+    cur = con.cursor()
+    cur.execute('''CREATE TABLE results (
+    ID    INTEGER PRIMARY KEY AUTOINCREMENT
+                  UNIQUE
+                  NOT NULL,
+    Name  STRING,
+    Score INTEGER NOT NULL,
+    Time  STRING);
+    ''')
+
+
+def add_res_to_db(result):
+    if not os.path.exists('C:\ProgramData/results.db'):
+        create_db()
+    name = input('Input your name for leaderboard: ')
+    game_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    con = sqlite3.connect('C:\ProgramData/results.db')
+    cur = con.cursor()
+    cur.execute(f'INSERT INTO results (Name, Score, Time) VALUES (?, ?, ?)',
+                (name, result, game_time))
+    con.commit()
+    print('Result writen!')
+
+
+def print_leaderboard():
+    con = sqlite3.connect('C:\ProgramData/results.db')
+    cur = con.cursor()
+    results = cur.execute('''SELECT * FROM results
+                             ORDER BY Score DESC''').fetchall()
+    for res in results:
+        print(f'{res[0]}\t{res[1]}\t{res[2]}\t{res[3]}')
 
 
 class Tetris:
@@ -108,7 +152,13 @@ class Tetris:
         self.new_block()
         self.level = 1
         self.score = 0
-        self.lines = 0
+        try:
+            with open('C:\ProgramData/best.txt', 'r') as best_res_file:
+                self.best_score = int(best_res_file.readline())
+        except FileNotFoundError:
+            with open('C:\ProgramData/best.txt', 'w') as best_res_file:
+                best_res_file.write('0')
+                self.best_score = 0
         self.game_over = False
         self.paused = False
 
@@ -122,8 +172,7 @@ class Tetris:
         self.block_y = 0
 
         if check_collision(self.board, self.block, (self.block_x, self.block_y)):
-            self.game_over = True
-            print('Game Over!')
+            self.set_gameover()
 
     def move_block(self, movement):
         if not (self.game_over or self.paused):
@@ -169,14 +218,33 @@ class Tetris:
                         pygame.Rect((block_x + x) * cell_size, (block_y + y) * cell_size,
                                     cell_size, cell_size), 0)
 
+    def set_gameover(self):
+        self.game_over = True
+        print('Game Over!')
+
+        add_res_to_db(self.score)
+        if self.score > self.best_score:
+            self.best_score = self.score
+            set_new_best(self.best_score)
+
+        print('Leaderboard:')
+        print_leaderboard()
+
     def new_game(self):
         if self.game_over:
             self.board = create_board()
             self.new_block()
             self.level = 1
             self.score = 0
-            self.lines = 0
+            try:
+                with open('C:\ProgramData/best.txt', 'r') as best_res_file:
+                    self.best_score = int(best_res_file.readline())
+            except FileNotFoundError:
+                with open('C:\ProgramData/best.txt', 'w') as best_res_file:
+                    best_res_file.write('0')
+                    self.best_score = 0
             self.game_over = False
+            self.paused = False
 
     def set_pause(self):
         self.paused = not self.paused
