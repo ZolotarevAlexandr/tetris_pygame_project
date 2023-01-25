@@ -1,9 +1,10 @@
-import pygame
-import sys
 import os
 import sqlite3
+import sys
 from datetime import datetime
 from random import choice
+
+import pygame
 
 blocks = [
     [[1, 1, 1],
@@ -135,8 +136,13 @@ def print_leaderboard():
     cur = con.cursor()
     results = cur.execute('''SELECT * FROM results
                              ORDER BY Score DESC''').fetchall()
-    for res in results:
-        print(f'{res[0]}\t{res[1]}\t{res[2]}\t{res[3]}')
+    last_result = cur.execute('''SELECT * FROM results
+                             ORDER BY ID DESC''').fetchone()
+    for index, res in enumerate(results):
+        if index >= 10:
+            break
+        print(f'{index + 1}) {res[0]}\t{res[1]}\t{res[2]}\t{res[3]}')
+    print(f'Your place is: {results.index(last_result) + 1}')
 
 
 class Tetris:
@@ -227,7 +233,7 @@ class Tetris:
             self.best_score = self.score
             set_new_best(self.best_score)
 
-        print('Leaderboard:')
+        print('Leaderboard top 10:')
         print_leaderboard()
 
     def new_game(self):
