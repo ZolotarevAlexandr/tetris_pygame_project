@@ -41,7 +41,7 @@ colors = (
 
 cell_size = 18
 cols = 10
-rows = 22
+rows = 20
 FPS = 30
 drop_event = pygame.USEREVENT + 1
 
