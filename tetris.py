@@ -120,18 +120,21 @@ def create_db():
 def add_res_to_db(result):
     if not os.path.exists('C:\ProgramData/results.db'):
         create_db()
-    name = input('Input your name for leaderboard: ')
-    game_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    name = input('Input your name for leaderboard (leave empty to not save): ')
+    if name:
+        game_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-    con = sqlite3.connect('C:\ProgramData/results.db')
-    cur = con.cursor()
-    cur.execute(f'INSERT INTO results (Name, Score, Time) VALUES (?, ?, ?)',
-                (name, result, game_time))
-    con.commit()
-    print('Result writen!')
+        con = sqlite3.connect('C:\ProgramData/results.db')
+        cur = con.cursor()
+        cur.execute(f'INSERT INTO results (Name, Score, Time) VALUES (?, ?, ?)',
+                    (name, result, game_time))
+        con.commit()
+        print('Result writen!')
+        return True
+    return False
 
 
-def print_leaderboard():
+def print_leaderboard(new_res_saved):
     con = sqlite3.connect('C:\ProgramData/results.db')
     cur = con.cursor()
     results = cur.execute('''SELECT * FROM results
@@ -142,7 +145,8 @@ def print_leaderboard():
         if index >= 10:
             break
         print(f'{index + 1}) {res[0]}\t{res[1]}\t{res[2]}\t{res[3]}')
-    print(f'Your place is: {results.index(last_result) + 1}')
+    if new_res_saved:
+        print(f'Your place is: {results.index(last_result) + 1}')
 
 
 class Tetris:
@@ -228,13 +232,13 @@ class Tetris:
         self.game_over = True
         print('Game Over!')
 
-        add_res_to_db(self.score)
+        result_added = add_res_to_db(self.score)
         if self.score > self.best_score:
             self.best_score = self.score
             set_new_best(self.best_score)
 
         print('Leaderboard top 10:')
-        print_leaderboard()
+        print_leaderboard(result_added)
 
     def new_game(self):
         if self.game_over:
