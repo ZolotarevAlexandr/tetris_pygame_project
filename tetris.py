@@ -39,6 +39,13 @@ colors = (
     (120, 37, 111)  # purple
 )
 
+but_color_light = (0, 255, 255)
+but_color_dark = (0, 180, 180)
+
+x_btn1, y_btn1 = 200, 90
+x_btn2, y_btn2 = 200, 140
+w_btn, h_btn = 140, 35
+
 cell_size = 18
 cols = 10
 rows = 20
@@ -149,10 +156,41 @@ def print_leaderboard(new_res_saved):
         print(f'Your place is: {results.index(last_result) + 1}')
 
 
+def draw(screen, game):
+    if game.on_but_1:
+        pygame.draw.rect(screen, but_color_dark, ((x_btn1, y_btn1), (w_btn, h_btn)), width=0)
+        pygame.draw.rect(screen, but_color_light, ((x_btn2, y_btn2), (w_btn, h_btn)), width=0)
+    elif game.on_but_2:
+        pygame.draw.rect(screen, but_color_light, ((x_btn1, y_btn1), (w_btn, h_btn)), width=0)
+        pygame.draw.rect(screen, but_color_dark, ((x_btn2, y_btn2), (w_btn, h_btn)), width=0)
+    else:
+        pygame.draw.rect(screen, but_color_light, ((x_btn1, y_btn1), (w_btn, h_btn)), width=0)
+        pygame.draw.rect(screen, but_color_light, ((x_btn2, y_btn2), (w_btn, h_btn)), width=0)
+    font = pygame.font.Font(None, 30)
+    text1 = font.render("New Game", True, (0, 0, 0))
+    text1_x = x_btn1 + w_btn // 2 - text1.get_width() // 2
+    text1_y = y_btn1 + h_btn // 2 - text1.get_height() // 2
+
+    if game.paused == False:
+        text2 = font.render("Pause", True, (0, 0, 0))
+    else:
+        text2 = font.render("Continue", True, (0, 0, 0))
+    text2_x = x_btn2 + w_btn // 2 - text2.get_width() // 2
+    text2_y = y_btn2 + h_btn // 2 - text2.get_height() // 2
+    screen.blit(text1, (text1_x, text1_y))
+    screen.blit(text2, (text2_x, text2_y))
+
+
+    text_score = font.render(f"Score: {game.score}", True, (255, 255, 255))
+    score_x = x_btn2 + w_btn + 20
+    score_y = y_btn2
+    screen.blit(text_score, (score_x, score_y))
+
+
 class Tetris:
     def __init__(self):
         pygame.init()
-        self.width = cell_size * (cols + 6)
+        self.width = cell_size * (cols + 10)
         self.height = cell_size * rows
         self.rlim = cell_size * cols
         self.screen = pygame.display.set_mode((self.width, self.height))
@@ -162,6 +200,7 @@ class Tetris:
         self.new_block()
         self.level = 1
         self.score = 0
+
         try:
             with open('C:\ProgramData/best.txt', 'r') as best_res_file:
                 self.best_score = int(best_res_file.readline())
@@ -171,6 +210,10 @@ class Tetris:
                 self.best_score = 0
         self.game_over = False
         self.paused = False
+        self.on_but_1 = False
+        self.on_but_2 = False
+
+        draw(self.screen, self)
 
         pygame.time.set_timer(drop_event, 1000 // self.level)
         pygame.key.set_repeat(250, 25)
@@ -268,6 +311,7 @@ class Tetris:
                              (255, 255, 255),
                              (self.rlim + 1, 0),
                              (self.rlim + 1, self.height - 1))
+            draw(self.screen, self)
 
             self.render(self.board, (0, 0))
             self.render(self.block, (self.block_x, self.block_y))
@@ -295,6 +339,23 @@ class Tetris:
                             self.set_pause()
                     if event.key == pygame.K_r:
                         self.new_game()
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    mouse = pygame.mouse.get_pos()
+                    if x_btn1 <= mouse[0] <= x_btn1 + w_btn and y_btn1 <= mouse[1] <= y_btn1 + h_btn:
+                        self.game_over = True
+                        self.new_game()
+                    elif x_btn2 <= mouse[0] <= x_btn2 + w_btn and y_btn2 <= mouse[1] <= y_btn2 + h_btn:
+                        self.set_pause()
+
+                mouse = pygame.mouse.get_pos()
+
+                if x_btn1 <= mouse[0] <= x_btn1 + w_btn and y_btn1 <= mouse[1] <= y_btn1 + h_btn:
+                    self.on_but_1 = True
+                elif x_btn2 <= mouse[0] <= x_btn2 + w_btn and y_btn2 <= mouse[1] <= y_btn2 + h_btn:
+                    self.on_but_2 = True
+                else:
+                    self.on_but_1 = False
+                    self.on_but_2 = False
             clock.tick(FPS)
 
 
