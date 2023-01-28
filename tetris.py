@@ -30,13 +30,13 @@ blocks = [
 
 colors = (
     (0, 0, 0),
-    (255, 200, 46),  # orange
-    (0, 119, 211), # blue
-    (72, 93, 197), # dark blue
-    (83, 218, 63),  # green
-    (254, 251, 52), # yellow
-    (234, 20, 28),  # red
-    (120, 37, 111)  # purple
+    'tetris_orange.png',  # orange
+    'tetris_cyan.png', # blue
+    'tetris_blue.png', # dark blue
+    'tetris_green.png',  # green
+    'tetris_yellow.png', # yellow
+    'tetris_red.png',  # red
+    'tetris_orange.png'  # purple
 )
 
 but_color_light = (0, 255, 255)
@@ -158,7 +158,7 @@ def print_leaderboard(new_res_saved):
 
 def draw(screen, game):
     if game.on_but_1:
-        pygame.draw.rect(screen, but_color_dark, ((x_btn1, y_btn1), (w_btn, h_btn)), width=0)
+        pygame.draw.t_colorrect(screen, but_color_dark, ((x_btn1, y_btn1), (w_btn, h_btn)), width=0)
         pygame.draw.rect(screen, but_color_light, ((x_btn2, y_btn2), (w_btn, h_btn)), width=0)
     elif game.on_but_2:
         pygame.draw.rect(screen, but_color_light, ((x_btn1, y_btn1), (w_btn, h_btn)), width=0)
@@ -185,6 +185,16 @@ def draw(screen, game):
     score_x = x_btn2 + w_btn + 20
     score_y = y_btn2
     screen.blit(text_score, (score_x, score_y))
+
+
+def load_image(name, colorkey=None):
+    fullname = name
+    # если файл не существует, то выходим
+    if not os.path.isfile(fullname):
+        print(f"Файл с изображением '{fullname}' не найден")
+        sys.exit()
+    image = pygame.image.load(fullname)
+    return image
 
 
 class Tetris:
@@ -262,14 +272,20 @@ class Tetris:
 
     def render(self, board, coords):
         block_x, block_y = coords
+        all_sprites = pygame.sprite.Group()
         for y, row in enumerate(board):
             for x, val in enumerate(row):
                 if val:
-                    pygame.draw.rect(
-                        self.screen,
-                        colors[val],
-                        pygame.Rect((block_x + x) * cell_size, (block_y + y) * cell_size,
-                                    cell_size, cell_size), 0)
+                    sprite = pygame.sprite.Sprite()
+                    # определим его вид
+                    sprite.image = load_image(colors[val])
+                    # и размеры
+                    sprite.rect = sprite.image.get_rect()
+                    # добавим спрайт в группу
+                    all_sprites.add(sprite)
+                    sprite.rect.x = (block_x + x) * cell_size
+                    sprite.rect.y = (block_y + y) * cell_size
+        all_sprites.draw(self.screen)
 
     def set_gameover(self):
         self.game_over = True
