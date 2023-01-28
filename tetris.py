@@ -158,7 +158,7 @@ def print_leaderboard(new_res_saved):
 
 def draw(screen, game):
     if game.on_but_1:
-        pygame.draw.t_colorrect(screen, but_color_dark, ((x_btn1, y_btn1), (w_btn, h_btn)), width=0)
+        pygame.draw.rect(screen, but_color_dark, ((x_btn1, y_btn1), (w_btn, h_btn)), width=0)
         pygame.draw.rect(screen, but_color_light, ((x_btn2, y_btn2), (w_btn, h_btn)), width=0)
     elif game.on_but_2:
         pygame.draw.rect(screen, but_color_light, ((x_btn1, y_btn1), (w_btn, h_btn)), width=0)
@@ -223,6 +223,9 @@ class Tetris:
         self.on_but_2 = False
 
         draw(self.screen, self)
+
+        pygame.mixer.music.load("sounds/tetris_music.mp3")
+        pygame.mixer.music.play(-1)
 
         pygame.time.set_timer(drop_event, 1000 // self.level)
         pygame.key.set_repeat(250, 25)
@@ -335,7 +338,8 @@ class Tetris:
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT or event.type == pygame.K_ESCAPE:
-                    quit_game()
+                    pygame.quit()
+                    sys.exit()
                 elif event.type == drop_event and not self.game_over:
                     self.drop()
                 elif event.type == pygame.KEYDOWN:
