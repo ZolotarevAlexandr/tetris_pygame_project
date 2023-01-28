@@ -31,10 +31,10 @@ blocks = [
 colors = (
     (0, 0, 0),
     'tetris_orange.png',  # orange
-    'tetris_cyan.png', # blue
-    'tetris_blue.png', # dark blue
+    'tetris_cyan.png',  # blue
+    'tetris_blue.png',  # dark blue
     'tetris_green.png',  # green
-    'tetris_yellow.png', # yellow
+    'tetris_yellow.png',  # yellow
     'tetris_red.png',  # red
     'tetris_orange.png'  # purple
 )
@@ -102,17 +102,12 @@ def check_collision(board, shape, coords):
     return False
 
 
-def set_new_best(new_best):
-    with open('data/best.txt', 'w') as best_res_file:
-        best_res_file.write(str(new_best))
-
-
 def quit_game():
     sys.exit()
 
 
 def create_db():
-    con = sqlite3.connect('C:\ProgramData/results.db')
+    con = sqlite3.connect('C:/ProgramData/results.db')
     cur = con.cursor()
     cur.execute('''CREATE TABLE results (
     ID    INTEGER PRIMARY KEY AUTOINCREMENT
@@ -124,14 +119,27 @@ def create_db():
     ''')
 
 
+def get_best_res():
+    con = sqlite3.connect('C:/ProgramData/results.db')
+    cur = con.cursor()
+    best = cur.execute('''
+    SELECT Score FROM results
+    ORDER BY Score DESC
+    ''').fetchone()
+    if best:
+        return best[0]
+    else:
+        return 0
+
+
 def add_res_to_db(result):
-    if not os.path.exists('C:\ProgramData/results.db'):
+    if not os.path.exists('C:/ProgramData/results.db'):
         create_db()
     name = input('Input your name for leaderboard (leave empty to not save): ')
     if name:
         game_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-        con = sqlite3.connect('C:\ProgramData/results.db')
+        con = sqlite3.connect('C:/ProgramData/results.db')
         cur = con.cursor()
         cur.execute(f'INSERT INTO results (Name, Score, Time) VALUES (?, ?, ?)',
                     (name, result, game_time))
@@ -142,76 +150,19 @@ def add_res_to_db(result):
 
 
 def print_leaderboard(new_res_saved):
-    con = sqlite3.connect('C:\ProgramData/results.db')
+    con = sqlite3.connect('C:/ProgramData/results.db')
     cur = con.cursor()
-    results = cur.execute('''SELECT * FROM results
+    results = cur.execute('''SELECT Name, Score, Time FROM results
                              ORDER BY Score DESC''').fetchall()
-    last_result = cur.execute('''SELECT * FROM results
+    last_result = cur.execute('''SELECT Name, Score, Time FROM results
                              ORDER BY ID DESC''').fetchone()
     for index, res in enumerate(results):
         if index >= 10:
             break
-        print(f'{index + 1}) {res[0]}\t{res[1]}\t{res[2]}\t{res[3]}')
+        print(f'{index + 1})\t{res[0]}{" " * (15 - len(res[0]))}{res[1]}'
+              f'{" " * (10 - len(str(res[1])))}{res[2]}')
     if new_res_saved:
         print(f'Your place is: {results.index(last_result) + 1}')
-
-
-def draw(screen, game):
-    pygame.draw.line(game.screen, (255, 255, 255),
-                     (cell_size * cols + 1, 0),
-                     (cell_size * cols + 1, cell_size * rows + 1))
-    pygame.draw.line(game.screen, (255, 255, 255),
-                     (0, cell_size * rows + 1),
-                     (cell_size * cols + 1, cell_size * rows + 1))
-
-    if game.on_but_1:
-        pygame.draw.rect(screen, but_color_dark, ((x_btn1, y_btn1), (w_btn, h_btn)), width=0)
-        pygame.draw.rect(screen, but_color_light, ((x_btn2, y_btn2), (w_btn, h_btn)), width=0)
-    elif game.on_but_2:
-        pygame.draw.rect(screen, but_color_light, ((x_btn1, y_btn1), (w_btn, h_btn)), width=0)
-        pygame.draw.rect(screen, but_color_dark, ((x_btn2, y_btn2), (w_btn, h_btn)), width=0)
-    else:
-        pygame.draw.rect(screen, but_color_light, ((x_btn1, y_btn1), (w_btn, h_btn)), width=0)
-        pygame.draw.rect(screen, but_color_light, ((x_btn2, y_btn2), (w_btn, h_btn)), width=0)
-    font = pygame.font.Font('BarcadeBrawlRegular.ttf', 10)
-    text1 = font.render("New Game", True, (0, 0, 0))
-    text1_x = x_btn1 + w_btn // 2 - text1.get_width() // 2
-    text1_y = y_btn1 + h_btn // 2 - text1.get_height() // 2
-
-    if game.paused == False:
-        text2 = font.render("Pause", True, (0, 0, 0))
-    else:
-        text2 = font.render("Continue", True, (0, 0, 0))
-    text2_x = x_btn2 + w_btn // 2 - text2.get_width() // 2
-    text2_y = y_btn2 + h_btn // 2 - text2.get_height() // 2
-    screen.blit(text1, (text1_x, text1_y))
-    screen.blit(text2, (text2_x, text2_y))
-
-    text_score = font.render(f"Score: {game.score}", True, (255, 255, 255))
-    score_x = x_btn2
-    score_y = y_btn2 + h_btn + 20
-    screen.blit(text_score, (score_x, score_y))
-
-    text_level = font.render(f"Level: {game.level}", True, (255, 255, 255))
-    level_x = x_btn2
-    level_y = y_btn2 + h_btn + 50
-    screen.blit(text_level, (level_x, level_y))
-
-    text_level = font.render(f"Lines: {game.lines}", True, (255, 255, 255))
-    level_x = x_btn2
-    level_y = y_btn2 + h_btn + 80
-    screen.blit(text_level, (level_x, level_y))
-
-    text_level = font.render(f"High Score: {game.level}", True, (255, 255, 255))
-    level_x = x_btn2
-    level_y = y_btn2 + h_btn + 110
-    screen.blit(text_level, (level_x, level_y))
-
-    font = pygame.font.Font('BarcadeBrawlRegular.ttf', 25)
-    name = font.render("Tetris", True, (0, 255, 255))
-    name_x = 10
-    name_y = cell_size * rows + 10
-    screen.blit(name, (name_x, name_y))
 
 
 def load_image(name, colorkey=None):
@@ -238,22 +189,17 @@ class Tetris:
         self.level = 1
         self.score = 0
         self.lines = 0
+        self.best_score = get_best_res()
 
-        try:
-            with open('C:\ProgramData/best.txt', 'r') as best_res_file:
-                self.best_score = int(best_res_file.readline())
-        except FileNotFoundError:
-            with open('C:\ProgramData/best.txt', 'w') as best_res_file:
-                best_res_file.write('0')
-                self.best_score = 0
         self.game_over = False
         self.paused = False
         self.on_but_1 = False
         self.on_but_2 = False
 
-        draw(self.screen, self)
+        self.draw()
 
         pygame.mixer.music.load("data/tetris_music.mp3")
+        pygame.mixer.music.set_volume(0.2)
         pygame.mixer.music.play(-1)
 
         pygame.time.set_timer(drop_event, 1000 // self.level)
@@ -300,7 +246,6 @@ class Tetris:
         self.score += score_to_add
         self.level = (self.score // 1000) + 1
         pygame.time.set_timer(drop_event, 1000 // self.level)
-        print(self.score, self.level)
 
     def render(self, board, coords):
         block_x, block_y = coords
@@ -324,9 +269,6 @@ class Tetris:
         print('Game Over!')
 
         result_added = add_res_to_db(self.score)
-        if self.score > self.best_score:
-            self.best_score = self.score
-            set_new_best(self.best_score)
 
         print('Leaderboard top 10:')
         print_leaderboard(result_added)
@@ -338,13 +280,7 @@ class Tetris:
             self.level = 1
             self.score = 0
             self.lines = 0
-            try:
-                with open('C:\ProgramData/best.txt', 'r') as best_res_file:
-                    self.best_score = int(best_res_file.readline())
-            except FileNotFoundError:
-                with open('C:\ProgramData/best.txt', 'w') as best_res_file:
-                    best_res_file.write('0')
-                    self.best_score = 0
+            self.best_score = get_best_res()
             self.game_over = False
             self.paused = False
 
@@ -352,11 +288,74 @@ class Tetris:
         self.paused = not self.paused
         print(f'Pause state: {self.paused}')
 
+    def draw(self):
+        pygame.draw.line(self.screen, (255, 255, 255),
+                         (cell_size * cols + 1, 0),
+                         (cell_size * cols + 1, cell_size * rows + 1))
+        pygame.draw.line(self.screen, (255, 255, 255),
+                         (0, cell_size * rows + 1),
+                         (cell_size * cols + 1, cell_size * rows + 1))
+
+        if self.on_but_1:
+            pygame.draw.rect(self.screen, but_color_dark,
+                             ((x_btn1, y_btn1), (w_btn, h_btn)), width=0)
+            pygame.draw.rect(self.screen, but_color_light,
+                             ((x_btn2, y_btn2), (w_btn, h_btn)), width=0)
+        elif self.on_but_2:
+            pygame.draw.rect(self.screen, but_color_light,
+                             ((x_btn1, y_btn1), (w_btn, h_btn)), width=0)
+            pygame.draw.rect(self.screen, but_color_dark,
+                             ((x_btn2, y_btn2), (w_btn, h_btn)), width=0)
+        else:
+            pygame.draw.rect(self.screen, but_color_light,
+                             ((x_btn1, y_btn1), (w_btn, h_btn)), width=0)
+            pygame.draw.rect(self.screen, but_color_light,
+                             ((x_btn2, y_btn2), (w_btn, h_btn)), width=0)
+        font = pygame.font.Font('data/BarcadeBrawlRegular.ttf', 10)
+        text1 = font.render("New Game", True, (0, 0, 0))
+        text1_x = x_btn1 + w_btn // 2 - text1.get_width() // 2
+        text1_y = y_btn1 + h_btn // 2 - text1.get_height() // 2
+
+        if not self.paused:
+            text2 = font.render("Pause", True, (0, 0, 0))
+        else:
+            text2 = font.render("Continue", True, (0, 0, 0))
+        text2_x = x_btn2 + w_btn // 2 - text2.get_width() // 2
+        text2_y = y_btn2 + h_btn // 2 - text2.get_height() // 2
+        self.screen.blit(text1, (text1_x, text1_y))
+        self.screen.blit(text2, (text2_x, text2_y))
+
+        text_score = font.render(f"Score: {self.score}", True, (255, 255, 255))
+        score_x = x_btn2
+        score_y = y_btn2 + h_btn + 20
+        self.screen.blit(text_score, (score_x, score_y))
+
+        text_level = font.render(f"Level: {self.level}", True, (255, 255, 255))
+        level_x = x_btn2
+        level_y = y_btn2 + h_btn + 50
+        self.screen.blit(text_level, (level_x, level_y))
+
+        text_level = font.render(f"Lines: {self.lines}", True, (255, 255, 255))
+        level_x = x_btn2
+        level_y = y_btn2 + h_btn + 80
+        self.screen.blit(text_level, (level_x, level_y))
+
+        text_level = font.render(f"High Score: {self.best_score}", True, (255, 255, 255))
+        level_x = x_btn2
+        level_y = y_btn2 + h_btn + 110
+        self.screen.blit(text_level, (level_x, level_y))
+
+        font = pygame.font.Font('data/BarcadeBrawlRegular.ttf', 25)
+        name = font.render("Tetris", True, (0, 255, 255))
+        name_x = 10
+        name_y = cell_size * rows + 10
+        self.screen.blit(name, (name_x, name_y))
+
     def run(self):
         clock = pygame.time.Clock()
         while True:
             self.screen.fill((0, 0, 0))
-            draw(self.screen, self)
+            self.draw()
 
             self.render(self.board, (0, 0))
             self.render(self.block, (self.block_x, self.block_y))
@@ -387,10 +386,12 @@ class Tetris:
                         self.new_game()
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     mouse = pygame.mouse.get_pos()
-                    if x_btn1 <= mouse[0] <= x_btn1 + w_btn and y_btn1 <= mouse[1] <= y_btn1 + h_btn:
+                    if x_btn1 <= mouse[0] <= x_btn1 + w_btn and \
+                            y_btn1 <= mouse[1] <= y_btn1 + h_btn:
                         self.game_over = True
                         self.new_game()
-                    elif x_btn2 <= mouse[0] <= x_btn2 + w_btn and y_btn2 <= mouse[1] <= y_btn2 + h_btn:
+                    elif x_btn2 <= mouse[0] <= x_btn2 + w_btn and \
+                            y_btn2 <= mouse[1] <= y_btn2 + h_btn:
                         self.set_pause()
 
                 mouse = pygame.mouse.get_pos()
