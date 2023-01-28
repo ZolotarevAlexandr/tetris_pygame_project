@@ -188,8 +188,7 @@ def draw(screen, game):
 
 
 def load_image(name, colorkey=None):
-    fullname = name
-    # если файл не существует, то выходим
+    fullname = os.path.join('data', name)
     if not os.path.isfile(fullname):
         print(f"Файл с изображением '{fullname}' не найден")
         sys.exit()
