@@ -224,7 +224,7 @@ class Tetris:
 
         draw(self.screen, self)
 
-        pygame.mixer.music.load("sounds/tetris_music.mp3")
+        pygame.mixer.music.load("data/tetris_music.mp3")
         pygame.mixer.music.play(-1)
 
         pygame.time.set_timer(drop_event, 1000 // self.level)
