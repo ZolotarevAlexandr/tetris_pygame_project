@@ -79,7 +79,7 @@ def destroy_filed_lines(board):
         bonus_points = bonus[-1]
     else:
         bonus_points = bonus[cleared_lines]
-    return new_board, bonus_points
+    return new_board, bonus_points, cleared_lines
 
 
 def join_block(board, block_list, coords):
@@ -157,6 +157,13 @@ def print_leaderboard(new_res_saved):
 
 
 def draw(screen, game):
+    pygame.draw.line(game.screen, (255, 255, 255),
+                     (cell_size * cols + 1, 0),
+                     (cell_size * cols + 1, cell_size * rows + 1))
+    pygame.draw.line(game.screen, (255, 255, 255),
+                     (0, cell_size * rows + 1),
+                     (cell_size * cols + 1, cell_size * rows + 1))
+
     if game.on_but_1:
         pygame.draw.rect(screen, but_color_dark, ((x_btn1, y_btn1), (w_btn, h_btn)), width=0)
         pygame.draw.rect(screen, but_color_light, ((x_btn2, y_btn2), (w_btn, h_btn)), width=0)
@@ -166,7 +173,7 @@ def draw(screen, game):
     else:
         pygame.draw.rect(screen, but_color_light, ((x_btn1, y_btn1), (w_btn, h_btn)), width=0)
         pygame.draw.rect(screen, but_color_light, ((x_btn2, y_btn2), (w_btn, h_btn)), width=0)
-    font = pygame.font.Font(None, 30)
+    font = pygame.font.Font('BarcadeBrawlRegular.ttf', 10)
     text1 = font.render("New Game", True, (0, 0, 0))
     text1_x = x_btn1 + w_btn // 2 - text1.get_width() // 2
     text1_y = y_btn1 + h_btn // 2 - text1.get_height() // 2
@@ -180,15 +187,36 @@ def draw(screen, game):
     screen.blit(text1, (text1_x, text1_y))
     screen.blit(text2, (text2_x, text2_y))
 
-
     text_score = font.render(f"Score: {game.score}", True, (255, 255, 255))
-    score_x = x_btn2 + w_btn + 20
-    score_y = y_btn2
+    score_x = x_btn2
+    score_y = y_btn2 + h_btn + 20
     screen.blit(text_score, (score_x, score_y))
+
+    text_level = font.render(f"Level: {game.level}", True, (255, 255, 255))
+    level_x = x_btn2
+    level_y = y_btn2 + h_btn + 50
+    screen.blit(text_level, (level_x, level_y))
+
+    text_level = font.render(f"Lines: {game.lines}", True, (255, 255, 255))
+    level_x = x_btn2
+    level_y = y_btn2 + h_btn + 80
+    screen.blit(text_level, (level_x, level_y))
+
+    text_level = font.render(f"High Score: {game.level}", True, (255, 255, 255))
+    level_x = x_btn2
+    level_y = y_btn2 + h_btn + 110
+    screen.blit(text_level, (level_x, level_y))
+
+    font = pygame.font.Font('BarcadeBrawlRegular.ttf', 25)
+    name = font.render("Tetris", True, (0, 255, 255))
+    name_x = 10
+    name_y = cell_size * rows + 10
+    screen.blit(name, (name_x, name_y))
 
 
 def load_image(name, colorkey=None):
     fullname = os.path.join('data', name)
+    # если файл не существует, то выходим
     if not os.path.isfile(fullname):
         print(f"Файл с изображением '{fullname}' не найден")
         sys.exit()
@@ -200,7 +228,7 @@ class Tetris:
     def __init__(self):
         pygame.init()
         self.width = cell_size * (cols + 10)
-        self.height = cell_size * rows
+        self.height = cell_size * (rows + 3) - 14
         self.rlim = cell_size * cols
         self.screen = pygame.display.set_mode((self.width, self.height))
 
@@ -209,6 +237,7 @@ class Tetris:
         self.new_block()
         self.level = 1
         self.score = 0
+        self.lines = 0
 
         try:
             with open('C:\ProgramData/best.txt', 'r') as best_res_file:
@@ -262,8 +291,9 @@ class Tetris:
             if check_collision(self.board, self.block, (self.block_x, self.block_y)):
                 self.board = join_block(self.board, self.block, (self.block_x, self.block_y))
                 self.new_block()
-                self.board, bonus = destroy_filed_lines(self.board)
+                self.board, bonus, lines = destroy_filed_lines(self.board)
                 self.add_score(bonus)
+                self.lines += lines
             self.add_score(1)
 
     def add_score(self, score_to_add):
@@ -307,6 +337,7 @@ class Tetris:
             self.new_block()
             self.level = 1
             self.score = 0
+            self.lines = 0
             try:
                 with open('C:\ProgramData/best.txt', 'r') as best_res_file:
                     self.best_score = int(best_res_file.readline())
@@ -325,10 +356,6 @@ class Tetris:
         clock = pygame.time.Clock()
         while True:
             self.screen.fill((0, 0, 0))
-            pygame.draw.line(self.screen,
-                             (255, 255, 255),
-                             (self.rlim + 1, 0),
-                             (self.rlim + 1, self.height - 1))
             draw(self.screen, self)
 
             self.render(self.board, (0, 0))
