@@ -135,7 +135,7 @@ def get_best_res():
 def add_res_to_db(result):
     if not os.path.exists('C:/ProgramData/results.db'):
         create_db()
-    name = input('Input your name for leaderboard (leave empty to not save): ')
+    name = os.getlogin()
     if name:
         game_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
