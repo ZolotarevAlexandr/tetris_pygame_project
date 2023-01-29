@@ -281,17 +281,46 @@ class Tetris:
         font = pygame.font.Font('data/BarcadeBrawlRegular.ttf', 15)
         your_place = font.render(f"Your place: {place}", True, (0, 255, 255))
         place_x = 10
-        place_y = text_coord + 50
+        place_y = text_coord + 30
         self.screen.blit(your_place, (place_x, place_y))
 
+        start_x = self.width // 2 - 200 // 2
+        start_y = self.height - 90
+        pygame.draw.rect(self.screen, but_color_light,
+                         ((start_x, start_y), (200, 35)), width=0)
+
+        quit_x = self.width // 2 - 200 // 2
+        quit_y = self.height - 45
+        pygame.draw.rect(self.screen, but_color_light,
+                         ((quit_x, quit_y), (200, 35)), width=0)
+
+        font3 = pygame.font.Font('data/BarcadeBrawlRegular.ttf', 15)
+        start_text = font3.render("new game", True, (0, 0, 0))
+        start_text_x = start_x + 100 - start_text.get_width() // 2
+        start_text_y = start_y + 20 - start_text.get_height() // 2
+        self.screen.blit(start_text, (start_text_x, start_text_y))
+
+        quit_text = font3.render("quit", True, (0, 0, 0))
+        quit_text_x = quit_x + 100 - quit_text.get_width() // 2
+        quit_text_y = quit_y + 20 - quit_text.get_height() // 2
+        self.screen.blit(quit_text, (quit_text_x, quit_text_y))
 
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
-                elif event.type == pygame.KEYDOWN:
-                    return  # начинаем игру
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    mouse = pygame.mouse.get_pos()
+                    if start_x <= mouse[0] <= start_x + 200 and \
+                            start_y <= mouse[1] <= start_y + 40:
+                        self.new_game()
+                        return
+                    elif quit_x <= mouse[0] <= quit_x + 200 and \
+                            quit_y <= mouse[1] <= quit_y + 40:
+                        pygame.quit()
+                        sys.exit()
+
             pygame.display.flip()
 
 
