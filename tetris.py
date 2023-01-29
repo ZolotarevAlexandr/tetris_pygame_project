@@ -120,6 +120,8 @@ def create_db():
 
 
 def get_best_res():
+    if not os.path.exists('C:/ProgramData/results.db'):
+        create_db()
     con = sqlite3.connect('C:/ProgramData/results.db')
     cur = con.cursor()
     best = cur.execute('''
