@@ -54,8 +54,8 @@ drop_event = pygame.USEREVENT + 1
 
 
 def create_board():
-    board = [[0 for x in range(cols)]
-             for y in range(rows)]
+    board = [[0 for _ in range(cols)]
+             for _ in range(rows)]
     return board
 
 
@@ -144,11 +144,9 @@ def add_res_to_db(result):
         cur.execute(f'INSERT INTO results (Name, Score, Time) VALUES (?, ?, ?)',
                     (name, result, game_time))
         con.commit()
-        return True
-    return False
 
 
-def print_leaderboard(new_res_saved):
+def print_leaderboard():
     con = sqlite3.connect('C:/ProgramData/results.db')
     cur = con.cursor()
     results = cur.execute('''SELECT Name, Score, Time FROM results
@@ -159,13 +157,14 @@ def print_leaderboard(new_res_saved):
     for index, res in enumerate(results):
         if index >= 10:
             break
-        s.append(f'{index + 1})\t{res[0]}{" " * (15 - len(res[0]))}{res[1]}'
-              f'{" " * (10 - len(str(res[1])))}{res[2]}')
+        s.append(f'{index + 1}){" " * (2 - len(str(index + 1)))}'
+                 f'{res[0]}{" " * (18 - len(res[0]))}{res[1]}'
+                 f'{" " * (10 - len(str(res[1])))}{res[2]}')
     place = results.index(last_result) + 1
     return s, place
 
 
-def load_image(name, colorkey=None):
+def load_image(name):
     fullname = os.path.join('data', name)
     if not os.path.isfile(fullname):
         print(f"Файл с изображением '{fullname}' не найден")
@@ -177,7 +176,7 @@ def load_image(name, colorkey=None):
 class Tetris:
     def __init__(self):
         pygame.init()
-        self.width = cell_size * (cols + 10)
+        self.width = cell_size * (cols + 11)
         self.height = cell_size * (rows + 3) - 14
         self.rlim = cell_size * cols
         self.screen = pygame.display.set_mode((self.width, self.height))
@@ -256,7 +255,7 @@ class Tetris:
                         sys.exit()
             pygame.display.flip()
 
-    def game_over_screen(self, last):
+    def game_over_screen(self):
         self.screen.fill((0, 0, 0))
         font = pygame.font.Font('data/BarcadeBrawlRegular.ttf', 30)
         game_over = font.render("Game over!", True, (0, 255, 255))
@@ -264,13 +263,13 @@ class Tetris:
         over_y = 20
         self.screen.blit(game_over, (over_x, over_y))
 
-        top10, place = print_leaderboard(last)
+        top10, place = print_leaderboard()
         intro_text = ["Leaderboard top 10:"] + top10
 
         font = pygame.font.Font('data/UbuntuMono-R.ttf', 13)
         text_coord = 53
         for line in intro_text:
-            string_rendered = font.render(line, 1, pygame.Color('white'))
+            string_rendered = font.render(line, True, pygame.Color('white'))
             intro_rect = string_rendered.get_rect()
             text_coord += 5
             intro_rect.top = text_coord
@@ -322,7 +321,6 @@ class Tetris:
                         sys.exit()
 
             pygame.display.flip()
-
 
     def new_block(self):
         self.block = self.next_block[:]
@@ -385,9 +383,8 @@ class Tetris:
 
     def set_gameover(self):
         self.game_over = True
-        result_added = add_res_to_db(self.score)
-        self.game_over_screen(result_added)
-
+        add_res_to_db(self.score)
+        self.game_over_screen()
 
     def new_game(self):
         if self.game_over:
