@@ -36,7 +36,7 @@ colors = (
     'tetris_green.png',  # green
     'tetris_yellow.png',  # yellow
     'tetris_red.png',  # red
-    'tetris_orange.png'  # purple
+    'tetris_purple.png'  # purple
 )
 
 but_color_light = (0, 255, 255)
@@ -144,7 +144,6 @@ def add_res_to_db(result):
         cur.execute(f'INSERT INTO results (Name, Score, Time) VALUES (?, ?, ?)',
                     (name, result, game_time))
         con.commit()
-        print('Result writen!')
         return True
     return False
 
@@ -156,13 +155,14 @@ def print_leaderboard(new_res_saved):
                              ORDER BY Score DESC''').fetchall()
     last_result = cur.execute('''SELECT Name, Score, Time FROM results
                              ORDER BY ID DESC''').fetchone()
+    s = []
     for index, res in enumerate(results):
         if index >= 10:
             break
-        print(f'{index + 1})\t{res[0]}{" " * (15 - len(res[0]))}{res[1]}'
+        s.append(f'{index + 1})\t{res[0]}{" " * (15 - len(res[0]))}{res[1]}'
               f'{" " * (10 - len(str(res[1])))}{res[2]}')
-    if new_res_saved:
-        print(f'Your place is: {results.index(last_result) + 1}')
+    place = results.index(last_result) + 1
+    return s, place
 
 
 def load_image(name, colorkey=None):
@@ -206,7 +206,7 @@ class Tetris:
         pygame.key.set_repeat(250, 25)
 
     def start_screen(self):
-        font = pygame.font.Font('BarcadeBrawlRegular.ttf', 40)
+        font = pygame.font.Font('data/BarcadeBrawlRegular.ttf', 40)
         tetris = font.render("TETRIS", True, (0, 255, 255))
         tetris_x = self.width // 2 - tetris.get_width() // 2
         tetris_y = 20
@@ -221,13 +221,13 @@ class Tetris:
         quit_y = self.height // 2 + 5
         pygame.draw.rect(self.screen, but_color_light,
                          ((quit_x, quit_y), (200, 40)), width=0)
-        font2 = pygame.font.Font('BarcadeBrawlRegular.ttf', 7)
+        font2 = pygame.font.Font('data/BarcadeBrawlRegular.ttf', 7)
         by = font2.render("By Alexandr Zolotarev and Aleksandra Druk", True, (0, 255, 255))
         by_x = self.width // 2 - by.get_width() // 2
         by_y = self.height - 20
         self.screen.blit(by, (by_x, by_y))
 
-        font3 = pygame.font.Font('BarcadeBrawlRegular.ttf', 15)
+        font3 = pygame.font.Font('data/BarcadeBrawlRegular.ttf', 15)
         start_text = font3.render("Start", True, (0, 0, 0))
         start_text_x = start_x + 100 - start_text.get_width() // 2
         start_text_y = start_y + 20 - start_text.get_height() // 2
@@ -237,7 +237,6 @@ class Tetris:
         quit_text_x = quit_x + 100 - quit_text.get_width() // 2
         quit_text_y = quit_y + 20 - quit_text.get_height() // 2
         self.screen.blit(quit_text, (quit_text_x, quit_text_y))
-
 
         while True:
             for event in pygame.event.get():
@@ -256,6 +255,45 @@ class Tetris:
                         pygame.quit()
                         sys.exit()
             pygame.display.flip()
+
+    def game_over_screen(self, last):
+        self.screen.fill((0, 0, 0))
+        font = pygame.font.Font('data/BarcadeBrawlRegular.ttf', 30)
+        game_over = font.render("Game over!", True, (0, 255, 255))
+        over_x = self.width // 2 - game_over.get_width() // 2
+        over_y = 20
+        self.screen.blit(game_over, (over_x, over_y))
+
+        top10, place = print_leaderboard(last)
+        intro_text = ["Leaderboard top 10:"] + top10
+
+        font = pygame.font.Font('data/BarcadeBrawlRegular.ttf', 7)
+        text_coord = 50
+        for line in intro_text:
+            string_rendered = font.render(line, 1, pygame.Color('white'))
+            intro_rect = string_rendered.get_rect()
+            text_coord += 10
+            intro_rect.top = text_coord
+            intro_rect.x = 10
+            text_coord += intro_rect.height
+            self.screen.blit(string_rendered, intro_rect)
+
+        font = pygame.font.Font('data/BarcadeBrawlRegular.ttf', 15)
+        your_place = font.render(f"Your place: {place}", True, (0, 255, 255))
+        place_x = 10
+        place_y = text_coord + 50
+        self.screen.blit(your_place, (place_x, place_y))
+
+
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == pygame.KEYDOWN:
+                    return  # начинаем игру
+            pygame.display.flip()
+
 
     def new_block(self):
         self.block = self.next_block[:]
@@ -318,12 +356,9 @@ class Tetris:
 
     def set_gameover(self):
         self.game_over = True
-        print('Game Over!')
-
         result_added = add_res_to_db(self.score)
+        self.game_over_screen(result_added)
 
-        print('Leaderboard top 10:')
-        print_leaderboard(result_added)
 
     def new_game(self):
         if self.game_over:
@@ -363,7 +398,7 @@ class Tetris:
                              ((x_btn1, y_btn1), (w_btn, h_btn)), width=0)
             pygame.draw.rect(self.screen, but_color_light,
                              ((x_btn2, y_btn2), (w_btn, h_btn)), width=0)
-        font = pygame.font.Font('BarcadeBrawlRegular.ttf', 10)
+        font = pygame.font.Font('data/BarcadeBrawlRegular.ttf', 10)
         text1 = font.render("New Game", True, (0, 0, 0))
         text1_x = x_btn1 + w_btn // 2 - text1.get_width() // 2
         text1_y = y_btn1 + h_btn // 2 - text1.get_height() // 2
@@ -397,7 +432,7 @@ class Tetris:
         level_y = y_btn2 + h_btn + 110
         self.screen.blit(text_level, (level_x, level_y))
 
-        font = pygame.font.Font('BarcadeBrawlRegular.ttf', 25)
+        font = pygame.font.Font('data/BarcadeBrawlRegular.ttf', 25)
         name = font.render("Tetris", True, (0, 255, 255))
         name_x = 10
         name_y = cell_size * rows + 10
