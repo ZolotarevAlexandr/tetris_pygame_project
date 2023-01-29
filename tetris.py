@@ -167,7 +167,6 @@ def print_leaderboard(new_res_saved):
 
 def load_image(name, colorkey=None):
     fullname = os.path.join('data', name)
-    # если файл не существует, то выходим
     if not os.path.isfile(fullname):
         print(f"Файл с изображением '{fullname}' не найден")
         sys.exit()
@@ -196,14 +195,67 @@ class Tetris:
         self.on_but_1 = False
         self.on_but_2 = False
 
-        self.draw()
-
         pygame.mixer.music.load("data/tetris_music.mp3")
         pygame.mixer.music.set_volume(0.2)
         pygame.mixer.music.play(-1)
 
+        self.start_screen()
+        self.draw()
+
         pygame.time.set_timer(drop_event, 1000 // self.level)
         pygame.key.set_repeat(250, 25)
+
+    def start_screen(self):
+        font = pygame.font.Font('BarcadeBrawlRegular.ttf', 40)
+        tetris = font.render("TETRIS", True, (0, 255, 255))
+        tetris_x = self.width // 2 - tetris.get_width() // 2
+        tetris_y = 20
+        self.screen.blit(tetris, (tetris_x, tetris_y))
+
+        start_x = self.width // 2 - 200 // 2
+        start_y = self.height // 2 - 45
+        pygame.draw.rect(self.screen, but_color_light,
+                         ((start_x, start_y), (200, 40)), width=0)
+
+        quit_x = self.width // 2 - 200 // 2
+        quit_y = self.height // 2 + 5
+        pygame.draw.rect(self.screen, but_color_light,
+                         ((quit_x, quit_y), (200, 40)), width=0)
+        font2 = pygame.font.Font('BarcadeBrawlRegular.ttf', 7)
+        by = font2.render("By Alexandr Zolotarev and Aleksandra Druk", True, (0, 255, 255))
+        by_x = self.width // 2 - by.get_width() // 2
+        by_y = self.height - 20
+        self.screen.blit(by, (by_x, by_y))
+
+        font3 = pygame.font.Font('BarcadeBrawlRegular.ttf', 15)
+        start_text = font3.render("Start", True, (0, 0, 0))
+        start_text_x = start_x + 100 - start_text.get_width() // 2
+        start_text_y = start_y + 20 - start_text.get_height() // 2
+        self.screen.blit(start_text, (start_text_x, start_text_y))
+
+        quit_text = font3.render("quit", True, (0, 0, 0))
+        quit_text_x = quit_x + 100 - quit_text.get_width() // 2
+        quit_text_y = quit_y + 20 - quit_text.get_height() // 2
+        self.screen.blit(quit_text, (quit_text_x, quit_text_y))
+
+
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == pygame.KEYDOWN:
+                    return  # начинаем игру
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    mouse = pygame.mouse.get_pos()
+                    if start_x <= mouse[0] <= start_x + 200 and \
+                            start_y <= mouse[1] <= start_y + 40:
+                        return
+                    elif quit_x <= mouse[0] <= quit_x + 200 and \
+                            quit_y <= mouse[1] <= quit_y + 40:
+                        pygame.quit()
+                        sys.exit()
+            pygame.display.flip()
 
     def new_block(self):
         self.block = self.next_block[:]
@@ -311,7 +363,7 @@ class Tetris:
                              ((x_btn1, y_btn1), (w_btn, h_btn)), width=0)
             pygame.draw.rect(self.screen, but_color_light,
                              ((x_btn2, y_btn2), (w_btn, h_btn)), width=0)
-        font = pygame.font.Font('data/BarcadeBrawlRegular.ttf', 10)
+        font = pygame.font.Font('BarcadeBrawlRegular.ttf', 10)
         text1 = font.render("New Game", True, (0, 0, 0))
         text1_x = x_btn1 + w_btn // 2 - text1.get_width() // 2
         text1_y = y_btn1 + h_btn // 2 - text1.get_height() // 2
@@ -345,7 +397,7 @@ class Tetris:
         level_y = y_btn2 + h_btn + 110
         self.screen.blit(text_level, (level_x, level_y))
 
-        font = pygame.font.Font('data/BarcadeBrawlRegular.ttf', 25)
+        font = pygame.font.Font('BarcadeBrawlRegular.ttf', 25)
         name = font.render("Tetris", True, (0, 255, 255))
         name_x = 10
         name_y = cell_size * rows + 10
@@ -360,6 +412,7 @@ class Tetris:
             self.render(self.board, (0, 0))
             self.render(self.block, (self.block_x, self.block_y))
             self.render(self.next_block, (cols + 1, 2))
+            pygame.display.set_caption('Tetris')
             pygame.display.update()
 
             for event in pygame.event.get():
