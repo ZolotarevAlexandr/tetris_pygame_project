@@ -267,12 +267,12 @@ class Tetris:
         top10, place = print_leaderboard(last)
         intro_text = ["Leaderboard top 10:"] + top10
 
-        font = pygame.font.Font('data/BarcadeBrawlRegular.ttf', 7)
-        text_coord = 50
+        font = pygame.font.Font('data/UbuntuMono-R.ttf', 13)
+        text_coord = 53
         for line in intro_text:
             string_rendered = font.render(line, 1, pygame.Color('white'))
             intro_rect = string_rendered.get_rect()
-            text_coord += 10
+            text_coord += 5
             intro_rect.top = text_coord
             intro_rect.x = 10
             text_coord += intro_rect.height
@@ -281,7 +281,7 @@ class Tetris:
         font = pygame.font.Font('data/BarcadeBrawlRegular.ttf', 15)
         your_place = font.render(f"Your place: {place}", True, (0, 255, 255))
         place_x = 10
-        place_y = text_coord + 30
+        place_y = text_coord + 25
         self.screen.blit(your_place, (place_x, place_y))
 
         start_x = self.width // 2 - 200 // 2
