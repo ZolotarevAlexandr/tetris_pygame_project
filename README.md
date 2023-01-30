@@ -11,3 +11,6 @@ Pygame final project: Tetris
     Down Arrow - быстрый спуск
     Space - пауза
     Escape - выход
+
+Запуск:
+Достаточно запустить exe файл из папки release
