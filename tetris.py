@@ -410,7 +410,6 @@ class Tetris:
 
     def set_pause(self):
         self.paused = not self.paused
-        print(f'Pause state: {self.paused}')
 
     def draw(self):
         pygame.draw.line(self.screen, (255, 255, 255),
